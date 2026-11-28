@@ -1,25 +1,25 @@
 const packages = {
   bali: {
-    title: 'Bali Escape', location: 'BALI · 3 HARI 2 MALAM', duration: '3 Hari 2 Malam', price: 'Rp2.450.000',
+    title: 'Bali', location: 'BALI · 3 HARI 2 MALAM', duration: '3 Hari 2 Malam', price: 'Rp2.450.000',
     image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=85',
     description: 'Nikmati sisi Bali yang paling menyenangkan: pantai, pura, kuliner lokal, dan matahari terbenam. Rencana perjalanan dibuat santai supaya kamu tetap punya waktu menikmati setiap tempat.',
     includes: ['Transportasi lokal selama tur', 'Penginapan 2 malam', 'Tiket masuk destinasi dalam itinerary', 'Pemandu lokal dan air mineral']
   },
   bromo: {
-    title: 'Bromo Sunrise Trip', location: 'JAWA TIMUR · 2 HARI 1 MALAM', duration: '2 Hari 1 Malam', price: 'Rp1.350.000',
-    image: 'https://images.unsplash.com/photo-1555899434-94d1368aa7af?auto=format&fit=crop&w=1200&q=85',
+    title: 'Bromo', location: 'JAWA TIMUR · 2 HARI 1 MALAM', duration: '2 Hari 1 Malam', price: 'Rp1.350.000',
+    image: 'https://i.pinimg.com/1200x/66/06/a3/6606a330b68dea492f2bc4a0b0bcd77e.jpg',
     description: 'Berangkat dini hari untuk menyambut matahari terbit dari kawasan Bromo, lalu lanjut menjelajahi lautan pasir dan kawah. Cocok untuk perjalanan singkat yang penuh pemandangan.',
     includes: ['Jeep 4WD untuk sunrise tour', 'Penginapan 1 malam', 'Tiket masuk kawasan Bromo', 'Pemandu dan transportasi lokal']
   },
   raja: {
-    title: 'Raja Ampat Discovery', location: 'PAPUA BARAT DAYA · 4 HARI 3 MALAM', duration: '4 Hari 3 Malam', price: 'Rp5.750.000',
-    image: 'https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=1200&q=85',
+    title: 'Raja Ampat', location: 'PAPUA BARAT DAYA · 4 HARI 3 MALAM', duration: '4 Hari 3 Malam', price: 'Rp5.750.000',
+    image: 'https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=720&q=85',
     description: 'Jelajahi gugusan pulau Raja Ampat lewat perjalanan perahu, snorkeling di perairan jernih, dan singgah di sudut-sudut alam yang sulit dilupakan.',
     includes: ['Perahu untuk island hopping', 'Penginapan 3 malam', 'Peralatan snorkeling dasar', 'Pemandu lokal dan makan selama tur']
   },
   bajo: {
-    title: 'Labuan Bajo Explorer', location: 'NUSA TENGGARA TIMUR · 3 HARI 2 MALAM', duration: '3 Hari 2 Malam', price: 'Rp3.950.000',
-    image: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1200&q=85',
+    title: 'Labuan Bajo', location: 'NUSA TENGGARA TIMUR · 3 HARI 2 MALAM', duration: '3 Hari 2 Malam', price: 'Rp3.950.000',
+    image: 'https://i.pinimg.com/1200x/2b/1a/fb/2b1afb38507030cf122fe4af4716df9b.jpg',
     description: 'Berlayar dari Labuan Bajo untuk melihat pulau-pulau eksotis, menikmati pemandangan laut, dan mengunjungi habitat Komodo bersama pemandu berpengalaman.',
     includes: ['Sailing trip dan transportasi lokal', 'Penginapan 2 malam', 'Tiket masuk Pulau Komodo', 'Pemandu, makan siang, dan air mineral']
   }
@@ -86,15 +86,27 @@ document.querySelector('.search-button').addEventListener('click', (event) => {
 });
 
 const destinationCards = [...document.querySelectorAll('.destination-card')];
-document.querySelector('#scroll-left').addEventListener('click', () => {
-  const grid = document.querySelector('#destination-grid');
-  grid.prepend(destinationCards.pop());
-  destinationCards.unshift(grid.firstElementChild);
-});
-document.querySelector('#scroll-right').addEventListener('click', () => {
-  const grid = document.querySelector('#destination-grid');
-  grid.append(destinationCards.shift());
-  destinationCards.push(grid.lastElementChild);
+const destinationGrid = document.querySelector('#destination-grid');
+const destinationIndicators = [...document.querySelectorAll('[data-destination-slide]')];
+
+destinationIndicators.forEach((indicator) => {
+  indicator.addEventListener('click', () => {
+    const slideIndex = Number(indicator.dataset.destinationSlide);
+    const reorderedCards = [...destinationCards.slice(slideIndex), ...destinationCards.slice(0, slideIndex)];
+
+    destinationGrid.classList.add('is-changing-slide');
+    window.setTimeout(() => {
+      destinationGrid.replaceChildren(...reorderedCards);
+      destinationGrid.classList.remove('is-changing-slide');
+    }, 140);
+
+    destinationIndicators.forEach((button, index) => {
+      const isActive = index === slideIndex;
+      button.classList.toggle('active', isActive);
+      if (isActive) button.setAttribute('aria-current', 'true');
+      else button.removeAttribute('aria-current');
+    });
+  });
 });
 
 document.querySelector('#booking-form').addEventListener('submit', (event) => {
@@ -147,3 +159,33 @@ contactForm.addEventListener('submit', (event) => {
   showToast('Pesan berhasil dikirim. Terima kasih sudah menghubungi JelajahNusa.');
   contactForm.reset();
 });
+
+const galleryTrack = document.querySelector('#galleryTrack');
+const galleryNext = document.querySelector('.gallery-next');
+const galleryPrev = document.querySelector('.gallery-prev');
+
+if (galleryTrack) {
+  const getStep = () => {
+    const firstSlide = galleryTrack.querySelector('.gallery-slide');
+    if (!firstSlide) return galleryTrack.clientWidth;
+    const styles = window.getComputedStyle(galleryTrack);
+    return firstSlide.getBoundingClientRect().width + parseFloat(styles.columnGap || styles.gap || 0);
+  };
+
+  const slideNext = () => {
+    const atEnd = galleryTrack.scrollLeft + galleryTrack.clientWidth >= galleryTrack.scrollWidth - 2;
+    galleryTrack.scrollTo({ left: atEnd ? 0 : galleryTrack.scrollLeft + getStep(), behavior: 'smooth' });
+  };
+
+  const slidePrevious = () => {
+    const atStart = galleryTrack.scrollLeft <= 2;
+    galleryTrack.scrollTo({ left: atStart ? galleryTrack.scrollWidth : galleryTrack.scrollLeft - getStep(), behavior: 'smooth' });
+  };
+
+  galleryNext?.addEventListener('click', slideNext);
+  galleryPrev?.addEventListener('click', slidePrevious);
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.setInterval(slideNext, 4500);
+  }
+}
